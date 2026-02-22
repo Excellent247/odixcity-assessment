@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: retry
+  namespace: assessment
+spec:
+  retry:
+    attempts: 3
+    initialInterval: 100ms

@@ -53,6 +53,10 @@ metadata:
   annotations:
     # Candidates: tweak Traefik annotations here for rate-limiting, buffering, etc.
     traefik.ingress.kubernetes.io/router.entrypoints: web
+    traefik.ingress.kubernetes.io/service.serversscheme: http
+    traefik.ingress.kubernetes.io/buffering.maxRequestBodyBytes: "0"
+    traefik.ingress.kubernetes.io/buffering.memRequestBodyBytes: "0"
+    traefik.ingress.kubernetes.io/router.middlewares: assessment-retry@kubernetescrd
 spec:
   rules:
     - host: assessment.local

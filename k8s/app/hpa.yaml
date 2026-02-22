@@ -20,8 +20,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: app-python
-  minReplicas: 2
-  maxReplicas: 20
+  minReplicas: 3
+  maxReplicas: 8
   metrics:
     - type: Resource
       resource:

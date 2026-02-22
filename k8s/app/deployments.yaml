@@ -16,7 +16,7 @@ metadata:
     language: python
     assessment: "true"
 spec:
-  replicas: 1   # ← candidates may tune this
+  replicas: 8
   selector:
     matchLabels:
       app: app-python
@@ -26,6 +26,14 @@ spec:
         app: app-python
         language: python
     spec:
+      # Spread pods across agent nodes so one node failure doesn't take out all replicas
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app: app-python
       containers:
         - name: app-python
           image: assessment/app-python:latest
@@ -37,6 +45,13 @@ spec:
               value: "mongodb://mongo:27017/assessmentdb"
             - name: APP_PORT
               value: "8000"
+            # Redis — added for caching layer
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: CACHE_TTL
+              value: "30"
           resources:
             requests:
               memory: "128Mi"
@@ -58,6 +73,48 @@ spec:
             initialDelaySeconds: 10
             periodSeconds: 20
             failureThreshold: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: writer
+  namespace: assessment
+  labels:
+    app: writer
+    assessment: "true"
+spec:
+  replicas: 1       # must stay at 1 — multiple writers would race on the queue
+  selector:
+    matchLabels:
+      app: writer
+  template:
+    metadata:
+      labels:
+        app: writer
+    spec:
+      containers:
+        - name: writer
+          image: assessment/writer:latest
+          imagePullPolicy: Never
+          env:
+            - name: MONGO_URI
+              value: "mongodb://mongo:27017/assessmentdb"
+            - name: REDIS_HOST
+              value: "redis"
+            - name: REDIS_PORT
+              value: "6379"
+            - name: WRITE_BATCH_SIZE
+              value: "25"
+            - name: WRITE_FLUSH_INTERVAL
+              value: "3.0"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+
 ---
 # ──────────────────────────────────────────────────────────────────────────────
 # Node.js Application Deployment (Express)
