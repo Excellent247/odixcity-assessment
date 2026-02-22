@@ -216,7 +216,7 @@ This is inherent to the MongoDB deployment configuration which cannot be changed
 
 ### What would make it pass
 
-1. **More host RAM** (Docker was struggling and Cluster consistently crashing due to limited host machine resources)
+1. **More host RAM** (Docker was struggling and Cluster consistently crashing under load due to limited host machine resources)
 2. **reducing pod count to 4** with adjusted connection pool — fewer pods = less total memory = Redis stays stable
 3. **cloud deployment** where node resources aren't shared with the host OS and k6
 4. **Time Constraint** Limited time to diagnose the writer logic and further improve it.
